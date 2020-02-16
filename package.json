@@ -1,24 +1,16 @@
 {
   "name": "quackchat-backend",
-  "version": "1.0.0",
-  "description": "NodeJS backend for QuackChat",
-  "main": "index.js",
+  "version": "0.0.0",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./bin/www"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/o-k-a-y/QuackChat-Backend.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/o-k-a-y/QuackChat-Backend/issues"
-  },
-  "homepage": "https://github.com/o-k-a-y/QuackChat-Backend#readme",
   "dependencies": {
-    "dotenv": "^8.2.0",
-    "express": "^4.17.1",
-    "ngrok": "^3.2.7"
+    "cookie-parser": "^1.4.4",
+    "debug": "^2.6.9",
+    "express": "^4.16.4",
+    "http-errors": "^1.6.3",
+    "morgan": "^1.9.1",
+    "pug": "^2.0.4"
   }
 }
