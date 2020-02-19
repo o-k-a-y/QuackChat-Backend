@@ -12,7 +12,8 @@ let users;
 
 const MongoClient = require("mongodb").MongoClient;
 const ObjectID = require("mongodb").ObjectID;
-const url = process.env.MONGO_URL || "mongodb://localhost:27017/quackchat";
+//const url = process.env.MONGO_URL || "mongodb://localhost:27017/quackchat";
+const url = process.env.MONGO_URL || "mongodb://3.229.96.152:27017/quackchat";
 
 // Setup and connect to MongoDB
 const startup = async () => {
