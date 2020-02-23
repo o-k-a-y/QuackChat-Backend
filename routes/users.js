@@ -29,8 +29,10 @@ router.put("/", async function(req, res, next) {
     //     res.json({});
     // }
     
-    let user = JSON.parse(req.body);
-
+    let user = req.body;
+    //console.log(user.username);
+    //console.log(user.password);
+    
     // Insert contact into DB
     try {
         let inserted = await req.usersCollection.insertOne(user);
