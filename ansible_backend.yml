@@ -1,0 +1,6 @@
+---
+- hosts: backend
+  remote_user: ubuntu
+  tasks:
+      - name: Start backend server
+        command: sh /home/ubuntu/startup.sh

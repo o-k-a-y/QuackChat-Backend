@@ -18,6 +18,7 @@ router.get("/", async function(req, res, next) {
 
 /* POST new user to mongoDB */
 router.post("/", function(req, res, next) {
+    console.log(req.body)
     res.json({"test": "test"})
 });
 
