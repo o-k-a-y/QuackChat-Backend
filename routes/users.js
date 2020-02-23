@@ -29,7 +29,7 @@ router.put("/", async function(req, res, next) {
     //     res.json({});
     // }
     
-    let user = formatData(req.body);
+    let user = req.body;
 
     // Insert contact into DB
     try {
