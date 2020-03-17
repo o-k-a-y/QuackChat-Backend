@@ -1,5 +1,6 @@
 var express = require("express");
 var router = express.Router();
+var bcrypt = require("bcrypt");
 const ObjectID = require("mongodb").ObjectID;
 
 /* GET users listing. */
@@ -30,6 +31,13 @@ router.put("/", async function(req, res, next) {
     // }
     
     let user = req.body;
+
+    // TODO Make new object and pull out only needed fields
+
+    let salt = await bcrypt.genSalt(10);
+    let hash = await bcrypt.hash(user.password, salt);
+    user.password = hash;
+
     //console.log(user.username);
     //console.log(user.password);
     
