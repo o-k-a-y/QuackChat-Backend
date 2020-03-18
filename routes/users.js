@@ -48,7 +48,8 @@ router.put("/", async function(req, res, next) {
     try {
 
         // Check if user already exists
-        if (await userExists(user.username)) {
+        let identicalUser = await req.collections.users.findOne({ user: { $regex: new RegExp(username, "i") } });
+        if (identicalUser) {
             res.status(409).json({message: "User already exists"});
             return;
         }
@@ -73,10 +74,6 @@ router.put("/", async function(req, res, next) {
 
 const sanitizeInput = (user) => {
     return {username: user.username, email: user.email, user: user.password};
-}
-
-const userExists = async (username) => {
-    return req.collections.users.findOne({ user: { $regex: new RegExp(username, "i") } });
 }
 
 
