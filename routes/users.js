@@ -6,7 +6,7 @@ const ObjectID = require("mongodb").ObjectID;
 /* GET users listing. */
 router.get("/", async function(req, res, next) {
     let allUsers;
-    console.log(req);
+    //console.log(req);
 
     try {
         allUsers = await req.usersCollection.find({}).toArray();
