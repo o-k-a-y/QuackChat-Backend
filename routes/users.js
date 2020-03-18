@@ -48,11 +48,11 @@ router.put("/", async function(req, res, next) {
     try {
 
         // Check if user already exists
-        let identicalUser = await req.usersCollection.findOne({ user: { $regex: new RegExp(username, "i") } });
-        if (identicalUser) {
-            res.status(409).json({message: "User already exists"});
-            return;
-        }
+        //let identicalUser = await req.usersCollection.findOne({ users: { $regex: new RegExp(user.username, "i") } });
+        //if (identicalUser) {
+        //    res.status(409).json({message: "User already exists"});
+        //    return;
+        //}
 
         await req.usersCollection.insertOne(user);
         // let inserted = await req.usersCollection.insertOne(user);
@@ -73,7 +73,7 @@ router.put("/", async function(req, res, next) {
 })
 
 const sanitizeInput = (user) => {
-    return {username: user.username, email: user.email, user: user.password};
+    return {username: user.username, email: user.email, password: user.password};
 }
 
 
