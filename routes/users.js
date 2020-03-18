@@ -70,7 +70,7 @@ const sanitizeInput = (user) => {
     return {username: user.username, email: user.email, user: user.password};
 }
 
-const doesUserExist = (username) => {
+const doesUserExist = async (username) => {
     return await req.collections.users.findOne({ user: { $regex: new RegExp(username, "i") } });
 }
 
