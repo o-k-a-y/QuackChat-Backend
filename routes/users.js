@@ -48,10 +48,15 @@ router.put("/", async function(req, res, next) {
     try {
 
         // Check if user already exists
+        if (userExists) {
+            res.status(409).json({message: "User already exists"});
+            return;
+        }
 
-        let inserted = await req.usersCollection.insertOne(user);
-        var newUser = inserted.ops;
-        newUser = newUser[0];
+        await req.usersCollection.insertOne(user);
+        // let inserted = await req.usersCollection.insertOne(user);
+        // var newUser = inserted.ops;
+        // newUser = newUser[0];
     } catch (ex) {
         // Can't connect to DB
         console.log(ex);
@@ -70,7 +75,7 @@ const sanitizeInput = (user) => {
     return {username: user.username, email: user.email, user: user.password};
 }
 
-const doesUserExist = async (username) => {
+const userExists = async (username) => {
     return await req.collections.users.findOne({ user: { $regex: new RegExp(username, "i") } });
 }
 
