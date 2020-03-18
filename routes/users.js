@@ -38,6 +38,8 @@ router.put("/", async function(req, res, next) {
     let hash = await bcrypt.hash(user.password, salt);
     user.password = hash;
 
+    user = sanitizeInput(user);
+
     //console.log(user.username);
     //console.log(user.password);
     
@@ -52,6 +54,10 @@ router.put("/", async function(req, res, next) {
 
     res.json(newUser);
 })
+
+const sanitizeInput = (user) => {
+    return {username: user.username, email: user.email, user: user.password};
+}
 
 
 // TODO
