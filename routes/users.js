@@ -48,11 +48,11 @@ router.put("/", async function(req, res, next) {
     try {
 
         // Check if user already exists
-        //let identicalUser = await req.usersCollection.findOne({ users: { $regex: new RegExp(user.username, "i") } });
-        //if (identicalUser) {
-        //    res.status(409).json({message: "User already exists"});
-        //    return;
-        //}
+        let identicalUser = await req.usersCollection.findOne({ users: { $regex: new RegExp(user.username, "i") } });
+        if (identicalUser) {
+           res.status(409).json({message: "User already exists"}).send();
+           return;
+        }
 
         await req.usersCollection.insertOne(user);
         // let inserted = await req.usersCollection.insertOne(user);
@@ -61,12 +61,12 @@ router.put("/", async function(req, res, next) {
     } catch (ex) {
         // Can't connect to DB
         console.log(ex);
-        res.status(500);
+        res.status(500).send();
         return;
 
     }
 
-    res.status(201);
+    res.status(201).send();
     return;
 
     //res.json(newUser);
