@@ -20,7 +20,7 @@ router.get("/", async function(req, res, next) {
 /* POST login */
 router.post('/login', async function(req, res, next) {
     // Get username and password fields
-    let username = req.body.username;
+    let userName = req.body.username;
 	let password = req.body.password;
 	
 	console.log(username, password);
@@ -28,7 +28,7 @@ router.post('/login', async function(req, res, next) {
 
     // Find user in DB
     try {
-        let user = await req.usersCollection.findOne({username: username});
+        let user = await req.usersCollection.findOne({userName: username});
         console.log("user: ", user);
 
         // No user exists with that username
@@ -39,10 +39,11 @@ router.post('/login', async function(req, res, next) {
 
 		// Set session variables if correct password
 		console.log(user.password);
-        const match = await bcrypt.compare(password, user.password);
-        if (match) {
+		const match = await bcrypt.compare(password, user.password);
+		
+		if (match) {
             console.log("user exists");
-            req.session.username = username;
+            req.session.username = userName;
             req.session.userId = user._id;
             res.status(200).send();
             return;
