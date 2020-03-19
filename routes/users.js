@@ -26,6 +26,7 @@ router.post('/login', async function(req, res, next) {
     // Find user in DB
     try {
         let user = await req.usersCollection.findOne({username: username});
+        console.log("user: ", user);
 
         // No user exists with that username
         if (!user) {
@@ -36,6 +37,7 @@ router.post('/login', async function(req, res, next) {
         // Set session variables if correct password
         const match = await bcrypt.compare(password, user.password);
         if (match) {
+            console.log("user exists");
             req.session.username = username;
             req.session.userId = user._id;
             res.status(200).send();
