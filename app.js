@@ -51,6 +51,8 @@ app.use((req, res, next) => {
 app.use(function(req, res, next) {
     req.username = "";
     req.userId = "";
+
+    next();
 });
 
 app.use("/", indexRouter);
