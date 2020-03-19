@@ -28,7 +28,7 @@ router.post('/login', async function(req, res, next) {
 
     // Find user in DB
     try {
-        let user = await req.usersCollection.findOne({userName: username});
+        let user = await req.usersCollection.findOne({username: userName});
         console.log("user: ", user);
 
         // No user exists with that username
