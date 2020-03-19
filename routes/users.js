@@ -19,17 +19,19 @@ router.get("/", async function(req, res, next) {
 
 /* POST login */
 router.post('/login', async function(req, res, next) {
-    // Get username and password fields
+	console.log(req.usersCollection);
+	// Get username and password fields
 	let fff = req.body.username;
 	let password = req.body.password;
 	
 	console.log(fff, password);
 	console.log(req.body);
 
+	let user;
     // Find user in DB
     try {
-        let user = await req.usersCollection.findOne({username: fff});
-        console.log("user: ", user);
+        user = await req.usersCollection.findOne({username: fff});
+        console.log("user: " +  user);
 
         // No user exists with that username
         if (!user) {
