@@ -21,16 +21,16 @@ router.get("/", async function(req, res, next) {
 router.post('/login', async function(req, res, next) {
 	console.log(req.usersCollection);
 	// Get username and password fields
-	let fff = req.body.username;
+	let username = req.body.username;
 	let password = req.body.password;
 	
-	console.log(fff, password);
+	console.log(username, password);
 	console.log(req.body);
 
 	let user;
     // Find user in DB
     try {
-        user = await req.usersCollection.findOne({username: fff});
+        user = await req.usersCollection.findOne({username: username});
         console.log("user: " +  user);
 
         // No user exists with that username
@@ -45,7 +45,7 @@ router.post('/login', async function(req, res, next) {
 		
 		if (match) {
             console.log("user exists");
-            req.username = fff;
+            req.username = username;
             req.userId = user._id;
             res.status(200).send();
             return;
