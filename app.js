@@ -2,7 +2,6 @@ var createError = require("http-errors");
 var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
-const ex_session = require('express-session');
 var logger = require("morgan");
 
 var indexRouter = require("./routes/index");
@@ -39,7 +38,6 @@ app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(ex_session);
 app.use(express.static(path.join(__dirname, "public")));
 
 // Add MongoDB collections to middleware and add the MongoDB collection object to the request object
@@ -47,6 +45,12 @@ app.use((req, res, next) => {
     req.usersCollection = users;
 
     next(); // allow us to continue to use other middlewares (go to the NEXT middleware in the chain)
+});
+
+// Add place for username and userId
+app.use(function(req, res, next) {
+    req.username = "";
+    req.userId = "";
 });
 
 app.use("/", indexRouter);
