@@ -17,6 +17,41 @@ router.get("/", async function(req, res, next) {
     }
 });
 
+/* POST login */
+router.post('/login', async function(req, res, next) {
+    // Get username and password fields
+    let username = req.body.username;
+    let password = req.body.password;
+
+    // Find user in DB
+    try {
+        let user = await req.usersCollection.findOne({username: username});
+
+        // No user exists with that username
+        if (!user) {
+            res.status(404).send();
+            return;
+        }
+
+        // Set session variables if correct password
+        const match = await bcrypt.compare(password, user.password);
+        if (match) {
+            req.session.username = username;
+            req.session.userId = user._id;
+            res.status(200).send();
+            return;
+        } else {
+            res.status(401).send();
+            return;
+        }
+
+    } catch (ex) {
+        console.log(ex);
+        res.status(500).send();
+        return;
+    }
+});
+
 /* POST new user to mongoDB */
 router.post("/", function(req, res, next) {
     console.log(req.body)
@@ -76,6 +111,7 @@ router.put("/", async function(req, res, next) {
 })
 
 const sanitizeInput = (user) => {
+    // TODO: find method of checking each of these fields are not empty/NULL and password length is right length
     return {username: user.username, email: user.email, password: user.password};
 }
 
