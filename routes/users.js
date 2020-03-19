@@ -37,7 +37,8 @@ router.post('/login', async function(req, res, next) {
             return;
         }
 
-        // Set session variables if correct password
+		// Set session variables if correct password
+		console.log(user.password);
         const match = await bcrypt.compare(password, user.password);
         if (match) {
             console.log("user exists");
