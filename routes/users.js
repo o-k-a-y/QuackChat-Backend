@@ -21,7 +21,10 @@ router.get("/", async function(req, res, next) {
 router.post('/login', async function(req, res, next) {
     // Get username and password fields
     let username = req.body.username;
-    let password = req.body.password;
+	let password = req.body.password;
+	
+	console.log(username, password);
+	console.log(req.body);
 
     // Find user in DB
     try {
@@ -86,10 +89,10 @@ router.put("/", async function(req, res, next) {
 
         // Check if user already exists
         let identicalUser = await req.usersCollection.findOne({ username: { $regex: new RegExp(user.username, "i") } });
-        
-	console.log(identicalUser);
-	console.log(user.username);
-	if (identicalUser) {
+        console.log(identicalUser);
+        console.log(user.username);
+		
+		if (identicalUser) {
            res.status(409).json({message: "User already exists"}).send();
            return;
         }
