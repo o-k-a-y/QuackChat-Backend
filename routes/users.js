@@ -17,7 +17,7 @@ router.get("/", async function(req, res, next) {
     }
 });
 
-/* POST login */
+/* Authenticates user when login is successful */
 router.post("/login", async function(req, res, next) {
     console.log(req.usersCollection);
     // Get username and password fields
@@ -66,6 +66,7 @@ router.post("/", function(req, res, next) {
     res.json({ test: "test" });
 });
 
+/* Create new user account */
 router.put("/", async function(req, res, next) {
     // // Return nothing if data is invalid
     // if (!validateData(req.body)) {
@@ -91,7 +92,7 @@ router.put("/", async function(req, res, next) {
         let identicalUser = await req.usersCollection.findOne({
             username: { $regex: new RegExp(user.username, "i") }
         });
-        console.log(identicalUser);
+        console.log("identical user", identicalUser);
         console.log(user.username);
 
         if (identicalUser) {

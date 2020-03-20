@@ -44,7 +44,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use((req, res, next) => {
     req.usersCollection = users;
 
-    next(); // allow us to continue to use other middlewares (go to the NEXT middleware in the chain)
+    next(); 
 });
 
 // Add place for username and userId
