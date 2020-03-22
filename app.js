@@ -46,6 +46,8 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(session({
     secret: "yess"
 }))
+// Check if authenticated
+app.use(session())
 
 // Add MongoDB collections to middleware and add the MongoDB collection object to the request object
 app.use((req, res, next) => {
