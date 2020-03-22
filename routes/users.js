@@ -27,6 +27,9 @@ router.post("/login", async function(req, res, next) {
     console.log(username, password);
     console.log(req.body);
 
+    console.log("session", req.session)
+    console.log("cookie", req.session.cookie);
+
     let user;
     // Find user in DB
     try {
@@ -45,9 +48,12 @@ router.post("/login", async function(req, res, next) {
 
         if (match) {
             console.log("user exists");
+
             req.session.username = username;
-            console.log(req.session.username)
             req.session.userId = user._id;
+
+            req.session.save() // ????
+
             res.status(200).send();
             return;
         } else {

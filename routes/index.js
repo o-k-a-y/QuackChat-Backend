@@ -9,6 +9,10 @@ router.get("/", function(req, res, next) {
 // Check if user is authenticated (username exists in session)
 router.get("/auth", function(req, res, next) {
     // Probably authenticated
+    console.log("session", req.session)
+
+    console.log("cookie", req.session.cookie)
+
     console.log(req.session.username)
     if (req.session.username) {
         res.status(204).send()
