@@ -45,8 +45,9 @@ router.post("/login", async function(req, res, next) {
 
         if (match) {
             console.log("user exists");
-            req.username = username;
-            req.userId = user._id;
+            req.session.username = username;
+            console.log(req.session.username)
+            req.session.userId = user._id;
             res.status(200).send();
             return;
         } else {
