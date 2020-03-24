@@ -47,7 +47,7 @@ app.use(express.static(path.join(__dirname, "public")));
 // TODO: Check if authenticated
 app.use(session({
     secret: "yess",
-    cookie: { maxAge: 60000 },
+    cookie: { maxAge: 86400000 },
     resave: false,
     saveUninitialized: false,
     store: new MongoStore({ url: "mongodb://3.229.96.152:27017/quackchat" })
