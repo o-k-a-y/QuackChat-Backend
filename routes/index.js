@@ -34,7 +34,7 @@ router.get("/auth", function(req, res, next) {
 router.post("/logout", function(req, res, next) {
     req.session.username = "";
     req.session.userId = "";
-    req.logout(); // passport logout
+    // req.logout(); // passport logout
 
     // TODO DELETE SESSION AND MAYBE ALSO COOKIE
 
