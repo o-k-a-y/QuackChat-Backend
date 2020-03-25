@@ -18,6 +18,19 @@ router.get("/", async function(req, res, next) {
     }
 });
 
+
+/* Get information about the current logged in user */
+// TODO: Delete this as it's not needed
+router.get("/me", function(req, res, next) {
+    console.log("meeee")
+    if (req.session.username) {
+        res.json({username: req.session.username}).status(200).send();
+    } else {
+        console.log(req.session.username);
+        res.status(404).send();
+    }
+});
+
 /* Authenticates user when login is successful */
 router.post("/login", async function(req, res, next) {
     // console.log(req.usersCollection);
