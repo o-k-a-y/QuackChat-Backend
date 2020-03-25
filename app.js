@@ -10,33 +10,6 @@ const MongoStore = require('connect-mongo')(session);
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 
-// TODO: Add other collections
-let collections = {};
-
-let users;
-let friends;
-
-const MongoClient = require("mongodb").MongoClient;
-const ObjectID = require("mongodb").ObjectID;
-//const url = process.env.MONGO_URL || "mongodb://localhost:27017/quackchat";
-const url = process.env.MONGO_URL || "mongodb://3.229.96.152:27017/quackchat";
-
-// Setup and connect to MongoDB
-const startup = async () => {
-    try {
-        const connection = await MongoClient.connect(url, {
-            useUnifiedTopology: true
-        });
-        const db = connection.db("quackchat");
-
-        // TODO: add all of these to collections object and use that as middleware instead of usersCollection
-        users = await db.createCollection("users");
-        friends = await db.createCollection("friends");
-    } catch (ex) {
-        console.error(ex);
-    }
-};
-
 var app = express();
 
 // view engine setup
@@ -63,20 +36,12 @@ app.use(session({
 // app.use(passport.session());
 
 // Add MongoDB collections to middleware and add the MongoDB collection object to the request object
-app.use((req, res, next) => {
-    req.usersCollection = users;
+// app.use((req, res, next) => {
+//     req.usersCollection = users;
 
-    next(); 
-});
-
-
-// Add place for username and userId
-// app.use(function(req, res, next) {
-//     req.username = "";
-//     req.userId = "";
-
-//     next();
+//     next(); 
 // });
+
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
@@ -97,6 +62,4 @@ app.use(function(err, req, res, next) {
     res.render("error");
 });
 
-
-startup()
 module.exports = app;

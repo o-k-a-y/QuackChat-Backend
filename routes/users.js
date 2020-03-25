@@ -2,6 +2,7 @@ var express = require("express");
 var router = express.Router();
 var bcrypt = require("bcrypt");
 const ObjectID = require("mongodb").ObjectID;
+const models = require("../models") // contains MongoDB collections
 
 /* GET users listing. */
 router.get("/", async function(req, res, next) {
@@ -9,7 +10,7 @@ router.get("/", async function(req, res, next) {
     //console.log(req);
 
     try {
-        allUsers = await req.usersCollection.find({}).toArray();
+        allUsers = await models.users.find({}).toArray();
         res.json(allUsers);
         //console.log(allUser);
     } catch (ex) {
@@ -21,6 +22,7 @@ router.get("/", async function(req, res, next) {
 router.post("/login", async function(req, res, next) {
     // console.log(req.usersCollection);
     // Get username and password fields
+    console.log(models)
     let username = req.body.username;
     let password = req.body.password;
 
@@ -33,7 +35,8 @@ router.post("/login", async function(req, res, next) {
     let user;
     // Find user in DB
     try {
-        user = await req.usersCollection.findOne({ username: username });
+        user = await models.users.findOne({ username: username });
+        console.log("nope");
         console.log("user: " + user);
 
         // No user exists with that username
@@ -96,10 +99,10 @@ router.put("/", async function(req, res, next) {
     // Insert contact into DB
     try {
         // Check if user already exists
-        let identicalUser = await req.usersCollection.findOne({
+        let identicalUser = await models.users.findOne({
             username: { $regex: new RegExp(user.username, "i") }
         });
-        console.log("identical user", identicalUser);
+        console.log("identical user?", identicalUser);
         console.log(user.username);
 
         if (identicalUser) {
@@ -109,7 +112,7 @@ router.put("/", async function(req, res, next) {
             return;
         }
 
-        await req.usersCollection.insertOne(user);
+        await models.users.insertOne(user);
         // let inserted = await req.usersCollection.insertOne(user);
         // var newUser = inserted.ops;
         // newUser = newUser[0];
