@@ -5,7 +5,7 @@ var path = require("path");
 var logger = require("morgan");
 let session = require("express-session")
 const MongoStore = require('connect-mongo')(session);
-let passport = require('passport')
+// let passport = require('passport')
 
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
@@ -59,8 +59,8 @@ app.use(session({
 }))
 
 // Passport for authentication?
-app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.initialize());
+// app.use(passport.session());
 
 // Add MongoDB collections to middleware and add the MongoDB collection object to the request object
 app.use((req, res, next) => {
