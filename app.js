@@ -12,6 +12,7 @@ var usersRouter = require("./routes/users");
 
 // TODO: Add other collections
 let users;
+let friends;
 
 const MongoClient = require("mongodb").MongoClient;
 const ObjectID = require("mongodb").ObjectID;
@@ -26,6 +27,7 @@ const startup = async () => {
         });
         const db = connection.db("quackchat");
         users = await db.createCollection("users");
+        friends = await db.createCollection("friends");
     } catch (ex) {
         console.error(ex);
     }
@@ -64,13 +66,14 @@ app.use((req, res, next) => {
     next(); 
 });
 
-// Add place for username and userId
-app.use(function(req, res, next) {
-    req.username = "";
-    req.userId = "";
 
-    next();
-});
+// Add place for username and userId
+// app.use(function(req, res, next) {
+//     req.username = "";
+//     req.userId = "";
+
+//     next();
+// });
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);

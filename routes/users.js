@@ -19,7 +19,7 @@ router.get("/", async function(req, res, next) {
 
 /* Authenticates user when login is successful */
 router.post("/login", async function(req, res, next) {
-    console.log(req.usersCollection);
+    // console.log(req.usersCollection);
     // Get username and password fields
     let username = req.body.username;
     let password = req.body.password;
