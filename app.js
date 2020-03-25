@@ -11,6 +11,8 @@ var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 
 // TODO: Add other collections
+let collections = {};
+
 let users;
 let friends;
 
@@ -26,6 +28,8 @@ const startup = async () => {
             useUnifiedTopology: true
         });
         const db = connection.db("quackchat");
+
+        // TODO: add all of these to collections object and use that as middleware instead of usersCollection
         users = await db.createCollection("users");
         friends = await db.createCollection("friends");
     } catch (ex) {
@@ -46,10 +50,9 @@ app.use(express.urlencoded({ extended: false }));
 //     secret: "yess"
 // }));
 app.use(express.static(path.join(__dirname, "public")));
-// TODO: Check if authenticated
 app.use(session({
     secret: "yess",
-    cookie: { maxAge: 86400000 },
+    cookie: { maxAge: 86400000 }, // change to 2 hours
     resave: false,
     saveUninitialized: false,
     store: new MongoStore({ url: "mongodb://3.229.96.152:27017/quackchat" })
