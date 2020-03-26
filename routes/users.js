@@ -67,6 +67,7 @@ router.post("/login", async function(req, res, next) {
 
             req.session.username = username;
             req.session.userId = user._id;
+            console.log("new session made with user: ", req.session.username);
 
             // req.session.save() // ????
 
