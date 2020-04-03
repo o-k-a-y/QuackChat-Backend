@@ -84,12 +84,6 @@ router.post("/login", async function(req, res, next) {
     }
 });
 
-/* POST new user to mongoDB */
-router.post("/", function(req, res, next) {
-    console.log(req.body);
-    res.json({ test: "test" });
-});
-
 /* Create new user account */
 router.put("/", async function(req, res, next) {
     // // Return nothing if data is invalid
@@ -142,6 +136,42 @@ router.put("/", async function(req, res, next) {
 
     //res.json(newUser);
 });
+
+/* Send a friend request to user if exists */
+router.post("/friends/add/:username", async function(req, res, next) {
+    console.log(req.params);
+    let username = req.params.username;
+    console.log("username for friend add: ", username)
+
+    // Check if user already exists
+    const re = /^ + me + $/g
+    let userExists = await models.users.findOne({
+        username: { $regex: re}
+    });
+
+    console.log("User to add exists:" , userExists);
+
+    if (!userExists) {
+        res.status(404).send();
+        return;
+    } else {
+        res.status(201).send();
+        return;
+    }
+
+    res.status(201).send();
+    return;
+});
+
+// Check if user exists in DB
+const doesUserExist = async (username) => {
+    // Check if user already exists
+    let userExists = await models.users.findOne({
+        username: { $regex: new RegExp(username, "i") }
+    });
+
+    return (userExists ? true: false);
+}
 
 const sanitizeInput = user => {
     // TODO: find method of checking each of these fields are not empty/NULL and password length is right length
