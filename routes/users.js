@@ -144,9 +144,9 @@ router.post("/friends/add/:username", async function(req, res, next) {
     console.log("username for friend add: ", username)
 
     // Check if user already exists
-    const re = /^ + me + $/g
+    const regex = new RegExp(["^", username, "$"].join(""));
     let userExists = await models.users.findOne({
-        username: { $regex: re}
+        username: {$regex: regex, $options: "i"}
     });
 
     console.log("User to add exists:" , userExists);
