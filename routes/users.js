@@ -2,7 +2,7 @@ var express = require("express");
 var router = express.Router();
 var bcrypt = require("bcrypt");
 const ObjectID = require("mongodb").ObjectID;
-const models = require("../models") // contains MongoDB collections
+const models = require("../models"); // contains MongoDB collections
 
 /* GET users listing. */
 router.get("/", async function(req, res, next) {
@@ -18,13 +18,14 @@ router.get("/", async function(req, res, next) {
     }
 });
 
-
 /* Get information about the current logged in user */
 // TODO: Delete this as it's not needed
 router.get("/me", function(req, res, next) {
-    console.log("meeee")
+    console.log("meeee");
     if (req.session.username) {
-        res.json({username: req.session.username}).status(200).send();
+        res.json({ username: req.session.username })
+            .status(200)
+            .send();
     } else {
         console.log(req.session.username);
         res.status(404).send();
@@ -35,14 +36,14 @@ router.get("/me", function(req, res, next) {
 router.post("/login", async function(req, res, next) {
     // console.log(req.usersCollection);
     // Get username and password fields
-    console.log(models)
+    console.log(models);
     let username = req.body.username;
     let password = req.body.password;
 
     console.log(username, password);
     console.log(req.body);
 
-    console.log("session", req.session)
+    console.log("session", req.session);
     console.log("cookie", req.session.cookie);
 
     let user;
@@ -107,9 +108,7 @@ router.put("/", async function(req, res, next) {
     // Insert contact into DB
     try {
         // Check if user already exists
-        let identicalUser = await models.users.findOne({
-            username: { $regex: new RegExp(user.username, "i") }
-        });
+        let identicalUser = await doesUserExist(user.username);
         console.log("identical user?", identicalUser);
         console.log(user.username);
 
@@ -141,15 +140,13 @@ router.put("/", async function(req, res, next) {
 router.post("/friends/add/:username", async function(req, res, next) {
     console.log(req.params);
     let username = req.params.username;
-    console.log("username for friend add: ", username)
+    console.log("username for friend add: ", username);
 
     // Check if user already exists
-    const regex = new RegExp(["^", username, "$"].join(""));
-    let userExists = await models.users.findOne({
-        username: {$regex: regex, $options: "i"}
-    });
+    const regex = new RegExp(`^${username}$`);
+    let userExists = await doesUserExist(username);
 
-    console.log("User to add exists:" , userExists);
+    console.log("User to add exists:", userExists);
 
     if (!userExists) {
         res.status(404).send();
@@ -164,14 +161,15 @@ router.post("/friends/add/:username", async function(req, res, next) {
 });
 
 // Check if user exists in DB
-const doesUserExist = async (username) => {
+const doesUserExist = async username => {
     // Check if user already exists
+    const regex = new RegExp(`^${username}$`);
     let userExists = await models.users.findOne({
-        username: { $regex: new RegExp(username, "i") }
+        username: { $regex: regex, $options: "i" }
     });
 
-    return (userExists ? true: false);
-}
+    return userExists ? true : false;
+};
 
 const sanitizeInput = user => {
     // TODO: find method of checking each of these fields are not empty/NULL and password length is right length
