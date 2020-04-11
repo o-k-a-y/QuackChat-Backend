@@ -152,6 +152,17 @@ router.post("/friends/add/:username", async function(req, res, next) {
         res.status(404).send();
         return;
     } else {
+        // Add array of friendIDs to user document
+        //      $push to the field "friends"
+        //      collectionName.update_one() ?
+
+        // Create/add to a friend document containing:
+        //      1. userID (id from user document or just username)
+        //      2. list of friends
+        //      3. list of pending friends 
+        //      4. list of received friend requests
+        // Basically make a json object with this information and then insertOne into the friends collection
+        
         res.status(201).send();
         return;
     }
