@@ -3,9 +3,10 @@ var router = express.Router();
 var bcrypt = require("bcrypt");
 const ObjectID = require("mongodb").ObjectID;
 const models = require("../models"); // contains MongoDB collections
+const fs = require("fs"); // for images
 
 /* GET users listing. */
-router.get("/", async function(req, res, next) {
+router.get("/", async function (req, res, next) {
     let allUsers;
     //console.log(req);
 
@@ -20,12 +21,10 @@ router.get("/", async function(req, res, next) {
 
 /* Get information about the current logged in user */
 // TODO: Delete this as it's not needed
-router.get("/me", function(req, res, next) {
+router.get("/me", function (req, res, next) {
     console.log("meeee");
     if (req.session.username) {
-        res.json({ username: req.session.username })
-            .status(200)
-            .send();
+        res.json({ username: req.session.username }).status(200).send();
     } else {
         console.log(req.session.username);
         res.status(404).send();
@@ -33,7 +32,7 @@ router.get("/me", function(req, res, next) {
 });
 
 /* Authenticates user when login is successful */
-router.post("/login", async function(req, res, next) {
+router.post("/login", async function (req, res, next) {
     // console.log(req.usersCollection);
     // Get username and password fields
     console.log(models);
@@ -86,7 +85,7 @@ router.post("/login", async function(req, res, next) {
 });
 
 /* Create new user account */
-router.put("/", async function(req, res, next) {
+router.put("/", async function (req, res, next) {
     // // Return nothing if data is invalid
     // if (!validateData(req.body)) {
     //     res.json({});
@@ -113,13 +112,18 @@ router.put("/", async function(req, res, next) {
         console.log(user.username);
 
         if (identicalUser) {
-            res.status(409)
-                .json({ message: "User already exists" })
-                .send();
+            res.status(409).json({ message: "User already exists" }).send();
             return;
         }
 
         await models.users.insertOne(user);
+
+        // Create friend document associated with the user document just created
+        let friendDocument = createFriendJSON(user.username);
+        await models.friends.insertOne(friendDocument);
+
+        // Add random duck image to user images
+
         // let inserted = await req.usersCollection.insertOne(user);
         // var newUser = inserted.ops;
         // newUser = newUser[0];
@@ -137,7 +141,7 @@ router.put("/", async function(req, res, next) {
 });
 
 /* Send a friend request to user if exists */
-router.post("/friends/add/:username", async function(req, res, next) {
+router.post("/friends/add/:username", async function (req, res, next) {
     console.log(req.params);
     let username = req.params.username;
     console.log("username for friend add: ", username);
@@ -151,44 +155,107 @@ router.post("/friends/add/:username", async function(req, res, next) {
     if (!userExists) {
         res.status(404).send();
         return;
-    } else {
-        // Add array of friendIDs to user document
-        //      $push to the field "friends"
-        //      collectionName.update_one() ?
-
-        // Create/add to a friend document containing:
-        //      1. userID (id from user document or just username)
-        //      2. list of friends
-        //      3. list of pending friends 
-        //      4. list of received friend requests
-        // Basically make a json object with this information and then insertOne into the friends collection
-        
-        res.status(201).send();
-        return;
     }
+    // Add array of friendIDs to user document
+    //      $push to the field "friends"
+    //      collectionName.update_one() ?
+
+    // check if you're already friends
+    // check if friend is in received
+    // check if it's in pending
+
+    // If user exists in pending, we already sent request
+    // await models.friends.updateOne({
+    //     $and: [
+    //         {
+    //             userId: req.session.username,
+    //         },
+    //         {
+    //             pending: {$in: [username]},
+    //         }
+    //     ],},
+    //     {$push: { pending: "already added" }},
+    // );
+
+
+    let alreadyAdded = await models.friends.countDocuments({
+        $and: [
+            {
+                userId: req.session.username,
+            },
+            {
+                pending: {$in: [username]},
+            }
+        ],}
+
+    );
+
+    console.log("Already added: ", alreadyAdded);
+
+
+    //
+    // models.friends.updateOne(
+    //     {
+    //         userId: req.session.username,
+    //     },
+    //     {
+    //         $push: { pending: username },
+    //     }
+    // );
+
+    // Create/add to a friend document containing:
+    //      1. userID (id from user document or just username)
+    //      2. list of friends
+    //      3. list of pending friends
+    //      4. list of received friend requests
+    // Basically make a json object with this information and then insertOne into the friends collection
+
+    //     res.status(201).send();
+    //     return;
+    // }
 
     res.status(201).send();
     return;
 });
 
 // Check if user exists in DB
-const doesUserExist = async username => {
+const doesUserExist = async (username) => {
     // Check if user already exists
     const regex = new RegExp(`^${username}$`);
     let userExists = await models.users.findOne({
-        username: { $regex: regex, $options: "i" }
+        username: { $regex: regex, $options: "i" },
     });
 
     return userExists ? true : false;
 };
 
-const sanitizeInput = user => {
+// Creates user JSON object
+const sanitizeInput = (user) => {
     // TODO: find method of checking each of these fields are not empty/NULL and password length is right length
     return {
         username: user.username,
         email: user.email,
-        password: user.password
+        password: user.password,
+        imageSmall: base64Encode("/home/ubuntu/defaultIcons/duck.png"),
+        imageLarge: base64Encode("/home/ubuntu/defaultIcons/duck.png"),
     };
+};
+
+// Create friend JSON object
+const createFriendJSON = (username) => {
+    return {
+        userId: username,
+        friends: [],
+        pending: [],
+        received: [],
+    };
+};
+
+// Encode file (file path) to base64 encoded string
+const base64Encode = (file) => {
+    const bitmap = fs.readFileSync(file);
+
+    return new Buffer(bitmap).toString("base64");
 };
 
 module.exports = router;
