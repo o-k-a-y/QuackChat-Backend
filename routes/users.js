@@ -157,7 +157,20 @@ router.post("/friends/add/:username", async function (req, res, next) {
     }
 
     // Can't add the same friend twice
+    let alreadyAdded = await models.friends.countDocuments(
+        {
+            userId: req.session.username
+        },
+        {
+            friends: username
+        }
+    )
 
+    if (alreadyAdded) {
+        console.log("Already friends!: ", alreadyAdded);
+        res.status(409).send();
+        return
+    }
 
     // If user exists in pending, we already sent request
     let alreadySentRequest = await models.friends.countDocuments({
@@ -174,7 +187,7 @@ router.post("/friends/add/:username", async function (req, res, next) {
     // TODO: change return HTTP code
     if (alreadySentRequest) {
         console.log("Already sent request: ", alreadySentRequest);
-        res.status(400).send();
+        res.status(409).send();
         return;
     }
 
