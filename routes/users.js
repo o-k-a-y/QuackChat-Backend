@@ -156,63 +156,67 @@ router.post("/friends/add/:username", async function (req, res, next) {
         res.status(404).send();
         return;
     }
-    // Add array of friendIDs to user document
-    //      $push to the field "friends"
-    //      collectionName.update_one() ?
 
     // check if you're already friends
     // check if friend is in received
     // check if it's in pending
 
     // If user exists in pending, we already sent request
-    // await models.friends.updateOne({
-    //     $and: [
-    //         {
-    //             userId: req.session.username,
-    //         },
-    //         {
-    //             pending: {$in: [username]},
-    //         }
-    //     ],},
-    //     {$push: { pending: "already added" }},
-    // );
-
-
-    let alreadyAdded = await models.friends.countDocuments({
+    let alreadySentRequest = await models.friends.countDocuments({
         $and: [
             {
                 userId: req.session.username,
             },
             {
-                pending: {$in: [username]},
-            }
-        ],}
+                pending: username,
+            },
+        ],
+    });
 
+    // TODO: change return HTTP code
+    if (alreadySentRequest) {
+        console.log("Already sent request: ", alreadySentRequest);
+        res.status(400).send();
+        return;
+    }
+
+    // Add user B to logged in user's (user A) pending
+    await models.friends.updateOne(
+        {
+            userId: req.session.username,
+        },
+        {
+            $push: { pending: username },
+        }
     );
 
-    console.log("Already added: ", alreadyAdded);
+    // Add logged in user to user's received
+    await models.friends.updateOne(
+        {
+            userId: username,
+        },
+        {
+            $push: { received: req.session.username },
+        }
+    );
 
+    // If two user's are to be friends, remove user from received and pending for both users (just in case?)
+    // Then add user A to user B's friend list and user B to user A's friend list
+    if (await canAddFriend(req.session.username, username)) {
+        console.log("Let's be friends: ", canAddFriend);
 
-    //
-    // models.friends.updateOne(
-    //     {
-    //         userId: req.session.username,
-    //     },
-    //     {
-    //         $push: { pending: username },
-    //     }
-    // );
+        // Remove B from A's pending and received
+        await removeFromPending(req.session.username, username);
+        // Remove A from B's pending and received
+        await removeFromPending(username, req.session.username);
 
-    // Create/add to a friend document containing:
-    //      1. userID (id from user document or just username)
-    //      2. list of friends
-    //      3. list of pending friends
-    //      4. list of received friend requests
-    // Basically make a json object with this information and then insertOne into the friends collection
+        // Remove B from A's pending and received
+        await removeFromReceived(req.session.username, username);
+        // Remove A from B's pending and received
+        await removeFromReceived(username, req.session.username);
 
-    //     res.status(201).send();
-    //     return;
-    // }
+        await addFriends(username, req.session.username);
+    }
 
     res.status(201).send();
     return;
@@ -250,6 +254,82 @@ const createFriendJSON = (username) => {
         received: [],
     };
 };
+
+// Returns whether or not user A can add B or vice versa
+// This is determined if user A has a received request from user B and user B has a pending request to user A
+const canAddFriend = async(userA, userB) => {
+    let canAdd = await models.friends.countDocuments({
+        $and: [
+            {
+                $and: [
+                    {
+                        userId: userA,
+                    },
+                    {
+                        received: userB,
+                    },
+                ],
+                $and: [
+                    {
+                        userId: userB,
+                    },
+                    {
+                        pending: userA,
+                    },
+                ],
+            },
+        ],
+    });
+
+    return canAdd;
+}
+
+// Remove userB from userA's pending
+const removeFromPending = async(userA, userB) => {
+    await models.friends.updateOne(
+        {
+            userId: userA,
+        },
+        {
+            $pull: { pending: userB }, 
+        }
+    );
+}
+
+// Remove userB from userA's received
+const removeFromReceived = async(userA, userB) => {
+    await models.friends.updateOne(
+        {
+            userId: userA,
+        },
+        {
+            $pull: { received: userB }, 
+        }
+    );
+}
+
+// Add user A and user B together
+const addFriends = async(userA, userB) => {
+    // Add user B to user A's friend list
+    await models.friends.updateOne(
+        {
+            userId: userB
+        },
+        {
+            $push: { friends: userA }
+        }
+    )
+
+    // Add user A to user B's friend list
+    await models.friends.updateOne(
+        {
+            userId: userA
+        },
+        {
+            $push: { friends: userB }
+        }
+    )
+}
 
 // Encode file (file path) to base64 encoded string
 const base64Encode = (file) => {
