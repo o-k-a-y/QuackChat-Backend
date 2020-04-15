@@ -209,6 +209,36 @@ router.post("/friends/add/:username", async function (req, res, next) {
     return;
 });
 
+/* Return list of user's friends */
+router.get("/friends/get", async function(req, res, next) {
+    var friends;
+
+    await models.friends.find(
+        {
+            userId: req.session.username
+        },
+    ).forEach(function (x) {
+        // console.log(x.friends)
+        friends = x.friends;
+    })
+
+    let friendData = []
+    for (i = 0; i < friends.length; i++) {
+        let test = await models.users.findOne(
+            {
+                username: friends[i]
+            }
+        )
+        friendData.push(test)
+    }
+
+    console.log("hey", databaseDown);
+
+    // console.log(friendData);
+    
+    res.status(200).json(friendData).send();
+});
+
 // Check if user exists in DB
 const doesUserExist = async (username) => {
     // Check if user already exists
@@ -303,7 +333,8 @@ const removeFromPending = async (userA, userB) => {
         },
         {
             $pull: { pending: userB },
-        }
+            
+        },
     );
 };
 
@@ -352,6 +383,11 @@ const addFriends = async (userA, userB) => {
         }
     );
 };
+
+// Return cursor to list of friends
+const getFriends = async(user) => {
+    
+}
 
 // Encode file (file path) to base64 encoded string
 const base64Encode = (file) => {
