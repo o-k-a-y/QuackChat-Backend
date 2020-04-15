@@ -222,6 +222,8 @@ router.get("/friends/get", async function(req, res, next) {
         friends = x.friends;
     })
 
+    console.log("Friends: ", friends)
+
     let friendData = []
     for (i = 0; i < friends.length; i++) {
         let test = await models.users.findOne(
@@ -235,7 +237,8 @@ router.get("/friends/get", async function(req, res, next) {
         friendData.push( {username, imageLarge, imageSmall} );
     }
 
-    console.log(friendData);
+    // console.log(friendData.length)
+    // console.log(friendData);
     
     res.status(200).json(friendData).send();
 });
