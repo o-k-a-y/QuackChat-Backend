@@ -229,12 +229,13 @@ router.get("/friends/get", async function(req, res, next) {
                 username: friends[i]
             }
         )
-        friendData.push(test)
+        let username = test.username;
+        let imageLarge = test.imageLarge;
+        let imageSmall = test.imageSmall
+        friendData.push( {username, imageLarge, imageSmall} );
     }
 
-    console.log("hey", databaseDown);
-
-    // console.log(friendData);
+    console.log(friendData);
     
     res.status(200).json(friendData).send();
 });
