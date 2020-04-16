@@ -122,9 +122,9 @@ router.put("/", async function (req, res, next) {
         let friendDocument = createFriendJSON(user.username);
         await models.friends.insertOne(friendDocument);
 
-        // Create message document associated with the user document just created
-        let messageDocument = createMessageJSON(user.username);
-        await models.messages.insertOne(messageDocument);
+        // // Create message document associated with the user document just created
+        // let messageDocument = createMessageJSON(user.username);
+        // await models.messages.insertOne(messageDocument);
 
         // Add random duck image to user images
 
@@ -253,17 +253,17 @@ router.get("/friends/get", async function (req, res, next) {
     console.log("callback test")
 
     // TODO: delete this code, this is a test only
-    console.log(req.session.username)
+    // console.log(req.session.username)
 
-    // delete all friends
-    await models.friends.updateOne(
-        {
-            userId: req.session.username
-        },
-        {
-            $set: { friends: [] }
-        }
-    )
+    // // delete all friends
+    // await models.friends.updateOne(
+    //     {
+    //         userId: req.session.username
+    //     },
+    //     {
+    //         $set: { friends: [] }
+    //     }
+    // )
 });
 
 // Check if user exists in DB
@@ -300,13 +300,13 @@ const createFriendJSON = (username) => {
 };
 
 // Create text message JSON object
-const createMessageJSON = (username) => {
+const createMessageJSON = (userId, type, to, from, message) => {
     return {
-        userId: username,
-        type: "",
-        to: "",
-        from: "",
-        message: null
+        userId: userId,
+        type: type,
+        to: to,
+        from: from,
+        message: message
     }
 }
 
