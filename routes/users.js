@@ -122,6 +122,10 @@ router.put("/", async function (req, res, next) {
         let friendDocument = createFriendJSON(user.username);
         await models.friends.insertOne(friendDocument);
 
+        // Create message document associated with the user document just created
+        let messageDocument = createMessageJSON(user.username);
+        await models.messages.insertOne(messageDocument);
+
         // Add random duck image to user images
 
         // let inserted = await req.usersCollection.insertOne(user);
@@ -210,37 +214,56 @@ router.post("/friends/add/:username", async function (req, res, next) {
 });
 
 /* Return list of user's friends */
-router.get("/friends/get", async function(req, res, next) {
+router.get("/friends/get", async function (req, res, next) {
     var friends;
 
-    await models.friends.find(
-        {
-            userId: req.session.username
-        },
-    ).forEach(function (x) {
-        // console.log(x.friends)
-        friends = x.friends;
-    })
+    await models.friends
+        .find({
+            userId: req.session.username,
+        })
+        .forEach(function (x) {
+            // console.log(x.friends)
+            friends = x.friends;
+        });
 
-    console.log("Friends: ", friends)
 
-    let friendData = []
+    let friendData = [];
+    if (!friendData) {
+        res.status(404).send();
+        return;
+    }
+
+    console.log("Friends: ", friends);
     for (i = 0; i < friends.length; i++) {
-        let test = await models.users.findOne(
-            {
-                username: friends[i]
-            }
-        )
+        let test = await models.users.findOne({
+            username: friends[i],
+        });
         let username = test.username;
         let imageLarge = test.imageLarge;
-        let imageSmall = test.imageSmall
-        friendData.push( {username, imageLarge, imageSmall} );
+        let imageSmall = test.imageSmall;
+        friendData.push({ username, imageLarge, imageSmall });
     }
 
     // console.log(friendData.length)
     // console.log(friendData);
-    
+
     res.status(200).json(friendData).send();
+    next();
+}, async function(req, res) {
+    console.log("callback test")
+
+    // TODO: delete this code, this is a test only
+    console.log(req.session.username)
+
+    // delete all friends
+    await models.friends.updateOne(
+        {
+            userId: req.session.username
+        },
+        {
+            $set: { friends: [] }
+        }
+    )
 });
 
 // Check if user exists in DB
@@ -275,6 +298,18 @@ const createFriendJSON = (username) => {
         received: [],
     };
 };
+
+// Create text message JSON object
+const createMessageJSON = (username) => {
+    return {
+        userId: username,
+        type: "",
+        to: "",
+        from: "",
+        message: null
+    }
+}
+
 
 // Add's user A to user B's received requests
 // and user B to user A's pending requests
@@ -337,8 +372,7 @@ const removeFromPending = async (userA, userB) => {
         },
         {
             $pull: { pending: userB },
-            
-        },
+        }
     );
 };
 
@@ -389,9 +423,7 @@ const addFriends = async (userA, userB) => {
 };
 
 // Return cursor to list of friends
-const getFriends = async(user) => {
-    
-}
+const getFriends = async (user) => {};
 
 // Encode file (file path) to base64 encoded string
 const base64Encode = (file) => {

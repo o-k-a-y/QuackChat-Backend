@@ -7,6 +7,7 @@ const url = process.env.MONGO_URL || "mongodb://3.229.96.152:27017/quackchat";
 // Collections in MongoDB
 let users;
 let friends;
+let messages;
 
 // Setup and connect to MongoDB
 const connect = async () => {
@@ -19,9 +20,11 @@ const connect = async () => {
 
         users = await db.createCollection("users");
         friends = await db.createCollection("friends");
+        messages = await db.createCollection("messages");
 
         module.exports.users = users;
         module.exports.friends = friends;
+        module.exports.messages = messages;
     } catch (ex) {
         console.error(ex);
     }
