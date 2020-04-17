@@ -224,8 +224,16 @@ router.post("/friends/add/:username", async function (req, res, next) {
 router.get("/friends/get", async function (req, res, next) {
     let friendData = await getFriendList(req.session.username);
 
-    let friendListHash = hashData(friendData);
-    console.log(friendListHash);
+    // let friendListHash = hashData(friendData);
+    let friendListHash;
+    await models.users.find(
+        {
+            username: req.session.username
+        }
+    ).forEach(function(x) {
+        friendListHash = x.friendListHash;
+    })
+    console.log("friend hash: ", friendListHash);
 
     let response = {
         "friendListHash": friendListHash,
