@@ -4,6 +4,7 @@ var bcrypt = require("bcrypt");
 const ObjectID = require("mongodb").ObjectID;
 const models = require("../models"); // contains MongoDB collections
 const fs = require("fs"); // for images
+const hash = require("object-hash") // for hashing objects to check if cache is up to date
 
 /* GET users listing. */
 router.get("/", async function (req, res, next) {
@@ -244,10 +245,17 @@ router.get("/friends/get", async function (req, res, next) {
         friendData.push({ username, imageLarge, imageSmall });
     }
 
-    // console.log(friendData.length)
-    // console.log(friendData);
+    let friendListHash = hashData(friendData);
+    console.log(friendListHash);
 
-    res.status(200).json(friendData).send();
+    let response = {
+        "friendListHash": friendListHash,
+        "friendList": friendData
+    }
+
+    // console.log("Response:", response);
+
+    res.status(200).json(response).send();
     next();
 }, async function(req, res) {
     console.log("callback test")
@@ -422,14 +430,16 @@ const addFriends = async (userA, userB) => {
     );
 };
 
-// Return cursor to list of friends
-const getFriends = async (user) => {};
-
 // Encode file (file path) to base64 encoded string
 const base64Encode = (file) => {
     const bitmap = fs.readFileSync(file);
 
     return new Buffer(bitmap).toString("base64");
 };
+
+// Hash data using md5 and base64
+const hashData = (data) => {
+    return hash(data, { algorithm: "md5", encoding: "base64" });
+}
 
 module.exports = router;
