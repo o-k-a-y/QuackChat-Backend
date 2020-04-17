@@ -4,7 +4,7 @@ var bcrypt = require("bcrypt");
 const ObjectID = require("mongodb").ObjectID;
 const models = require("../models"); // contains MongoDB collections
 const fs = require("fs"); // for images
-const hash = require("object-hash") // for hashing objects to check if cache is up to date
+const hash = require("object-hash"); // for hashing objects to check if cache is up to date
 
 /* GET users listing. */
 router.get("/", async function (req, res, next) {
@@ -213,7 +213,6 @@ router.post("/friends/add/:username", async function (req, res, next) {
         // console.log(hashData(getFriendList(req.session.username)));
         await updateHash("friendListHash", req.session.username);
         await updateHash("friendListHash", username);
-
     }
 
     res.status(201).send();
@@ -221,58 +220,58 @@ router.post("/friends/add/:username", async function (req, res, next) {
 });
 
 /* Return list of user's friends */
-router.get("/friends/get", async function (req, res, next) {
-    let friendData = await getFriendList(req.session.username);
+router.get(
+    "/friends/get",
+    async function (req, res, next) {
+        let friendData = await getFriendList(req.session.username);
 
-    // let friendListHash = hashData(friendData);
-    let friendListHash;
-    await models.users.find(
-        {
-            username: req.session.username
-        }
-    ).forEach(function(x) {
-        friendListHash = x.friendListHash;
-    })
-    console.log("friend hash: ", friendListHash);
-
-    let response = {
-        "friendListHash": friendListHash,
-        "friendList": friendData
-    }
-
-    // console.log("Response:", response);
-
-    res.status(200).json(response).send();
-    next();
-}, async function(req, res) {
-    console.log("callback test")
-
-    // TODO: delete this code, this is a test only
-    // console.log(req.session.username)
-
-    // // delete all friends
-    // await models.friends.updateOne(
-    //     {
-    //         userId: req.session.username
-    //     },
-    //     {
-    //         $set: { friends: [] }
-    //     }
-    // )
-});
-
-const getFriendList = async (username) => {
-    var friends;
-
-    await models.friends
-        .find({
-            userId: username,
-        })
-        .forEach(function (x) {
-            // console.log(x.friends)
-            friends = x.friends;
+        // let friendListHash = hashData(friendData);
+        let friendListHash = await models.users.findOne({
+            username: req.session.username,
         });
 
+        friendListHash = friendListHash.friendListHash;
+
+        // ).forEach(function(x) {
+        //     friendListHash = x.friendListHash;
+        // })
+        console.log("friend hash: ", friendListHash);
+
+        let response = {
+            friendListHash: friendListHash,
+            friendList: friendData,
+        };
+
+        // console.log("Response:", response);
+
+        res.status(200).json(response).send();
+        next();
+    },
+    async function (req, res) {
+        console.log("callback test");
+
+        // TODO: delete this code, this is a test only
+        // console.log(req.session.username)
+
+        // // delete all friends
+        // await models.friends.updateOne(
+        //     {
+        //         userId: req.session.username
+        //     },
+        //     {
+        //         $set: { friends: [] }
+        //     }
+        // )
+    }
+);
+
+const getFriendList = async (username) => {
+    // var friends;
+
+    let friends = await models.friends.findOne({
+        userId: username,
+    });
+    friends = friends.friends;
 
     let friendData = [];
     if (!friendData) {
@@ -335,10 +334,9 @@ const createMessageJSON = (type, to, from, message) => {
         type: type,
         to: to,
         from: from,
-        message: message
-    }
-}
-
+        message: message,
+    };
+};
 
 // Add's user A to user B's received requests
 // and user B to user A's pending requests
@@ -464,24 +462,22 @@ const hashData = (data) => {
 };
 
 // Update the hashes of a user
-const updateHash = async(cacheType, username) => {
+const updateHash = async (cacheType, username) => {
     var newHash = hashData(await getFriendList(username));
 
     console.log("new hash:", newHash);
-    
+
     await models.users.updateOne(
         {
-            username: username
+            username: username,
         },
         {
-            $set: { friendListHash: newHash }
-        },
-    )
+            $set: { friendListHash: newHash },
+        }
+    );
     // console.log(newHash + username);
 };
 
-const hashMatch = (hash) => {
-
-};
+const hashMatch = (hash) => {};
 
 module.exports = router;
