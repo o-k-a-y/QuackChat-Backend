@@ -4,7 +4,7 @@ var bcrypt = require("bcrypt");
 const ObjectID = require("mongodb").ObjectID;
 const models = require("../models"); // contains MongoDB collections
 const fs = require("fs"); // for images
-const hash = require("object-hash"); // for hashing objects to check if cache is up to date
+const hashObject = require("object-hash"); // for hashing objects to check if cache is up to date
 
 /* GET users listing. */
 router.get("/", async function (req, res, next) {
@@ -211,8 +211,8 @@ router.post("/friends/add/:username", async function (req, res, next) {
 
         // Update friend list cache of both users
         // console.log(hashData(getFriendList(req.session.username)));
-        await updateHash("friendListHash", req.session.username);
-        await updateHash("friendListHash", username);
+        await updateHash("friendList", req.session.username);
+        await updateHash("friendList", username);
     }
 
     res.status(201).send();
@@ -220,51 +220,66 @@ router.post("/friends/add/:username", async function (req, res, next) {
 });
 
 /* Return list of user's friends */
-router.get(
-    "/friends/get",
-    async function (req, res, next) {
-        let friendData = await getFriendList(req.session.username);
+router.get("/friends/get", async function (req, res, next) {
+    let friendData = await getFriendList(req.session.username);
 
-        // let friendListHash = hashData(friendData);
-        let friendListHash = await models.users.findOne({
-            username: req.session.username,
-        });
+    // let friendListHash = hashData(friendData);
+    // let friendListHash = await models.users.findOne({
+    //     username: req.session.username,
+    // });
 
-        friendListHash = friendListHash.friendListHash;
+    // friendListHash = friendListHash.friendListHash;
 
-        // ).forEach(function(x) {
-        //     friendListHash = x.friendListHash;
-        // })
-        console.log("friend hash: ", friendListHash);
+    let friendListHash = await getFriendListHash(req.session.username);
 
-        let response = {
-            friendListHash: friendListHash,
-            friendList: friendData,
-        };
+    // console.log("friend hash: ", friendListHash);
 
-        // console.log("Response:", response);
+    let response = {
+        friendListHash: friendListHash,
+        friendList: friendData,
+    };
 
-        res.status(200).json(response).send();
-        next();
-    },
+    // console.log("Response:", response);
+
+    res.status(200).json(response).send();
+    // next();
+},
     async function (req, res) {
         console.log("callback test");
 
         // TODO: delete this code, this is a test only
-        // console.log(req.session.username)
-
-        // // delete all friends
-        // await models.friends.updateOne(
-        //     {
-        //         userId: req.session.username
-        //     },
-        //     {
-        //         $set: { friends: [] }
-        //     }
-        // )
+        
     }
 );
 
+// Check if a hash matches friend list hash
+router.post("/hash/check/friendList", async function (req, res, next) {
+    const username = req.session.username;
+    const hash = req.body.hash;
+    
+    // No hash passed in
+    if (!hash) {
+        res.status(404).send();
+    }
+
+    console.log("hash in check: ", hash);
+
+    let hashCheckRes = await hashMatch("friendList", hash, username);
+
+    let hash1 = {"hash": hash};
+    let hash2 = {"hash": hashCheckRes}
+    // if (hash1 == hash2) {
+    //     console.log("Hash is valid, returning same hash: ", hashCheckRes);
+    //     res.status(200).json(hash2).send()
+    // } else {
+    //     console.log("Hash is invalid, returning new hash: ", hashCheckRes);
+    //     res.status(200).json(hash2).send()
+    // }
+    console.log("Returning current hash: ", hashCheckRes);
+    res.status(200).json(hash2).send()
+});
+
+// Get a user's friend list
 const getFriendList = async (username) => {
     // var friends;
 
@@ -458,26 +473,64 @@ const base64Encode = (file) => {
 
 // Hash data using md5 and base64
 const hashData = (data) => {
-    return hash(data, { algorithm: "md5", encoding: "base64" });
+    return hashObject(data, { algorithm: "md5", encoding: "base64" });
 };
 
 // Update the hashes of a user
-const updateHash = async (cacheType, username) => {
+const updateHash = async (hashType, username) => {
     var newHash = hashData(await getFriendList(username));
 
-    console.log("new hash:", newHash);
+    // console.log("new hash:", newHash);
 
-    await models.users.updateOne(
-        {
-            username: username,
-        },
-        {
-            $set: { friendListHash: newHash },
-        }
-    );
+    if (hashType == "friendList") {
+        await models.users.updateOne(
+            {
+                username: username,
+            },
+            {
+                $set: { friendListHash: newHash },
+            }
+        );
+    }
+    
     // console.log(newHash + username);
 };
 
-const hashMatch = (hash) => {};
+// Get the hash for a user's friend list
+const getFriendListHash = async (username) => {
+    let friendListHash = await models.users.findOne({
+        username: username,
+    });
+
+    friendListHash = friendListHash.friendListHash;
+
+    // console.log("real hash:", friendListHash)
+
+
+    return friendListHash;
+};
+
+// Check if two hashes match
+const hashMatch = async (hashType, hash, username) => {
+    if (hashType == "friendList") {
+        return await hashMatchFriendList(hash, username);
+    } else if (hashType == "messages") {
+        // TODO
+    }
+};
+
+// Check if hash matches friend list hash
+const hashMatchFriendList = async (hash, username) => {
+    const friendListHash = await getFriendListHash(username);
+    console.log("passed in hash", hash);
+    console.log()
+
+    if (friendListHash == hash) {
+        return hash;
+    } else {
+        await updateHash("friendList", username);
+        return await getFriendListHash(username);
+    }
+};
 
 module.exports = router;
