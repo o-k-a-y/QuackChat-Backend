@@ -252,6 +252,15 @@ router.get("/friends/get", async function (req, res, next) {
     }
 );
 
+/* Send a user a text message */
+router.post("/message/send/:username/", async function(req, res, next) {
+    console.log(req.params);
+
+    console.log(req.body.message)
+
+    res.status(200).send()
+});
+
 // Check if a hash matches friend list hash
 router.post("/hash/check/friendList", async function (req, res, next) {
     const username = req.session.username;
@@ -344,12 +353,13 @@ const createFriendJSON = (username) => {
 };
 
 // Create text message JSON object
-const createMessageJSON = (type, to, from, message) => {
+const createMessageJSON = (type, to, from, message, time) => {
     return {
         type: type,
         to: to,
         from: from,
         message: message,
+        time: time,
     };
 };
 
