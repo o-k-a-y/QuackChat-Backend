@@ -123,15 +123,6 @@ router.put("/", async function (req, res, next) {
         let friendDocument = createFriendJSON(user.username);
         await models.friends.insertOne(friendDocument);
 
-        // // Create message document associated with the user document just created
-        // let messageDocument = createMessageJSON(user.username);
-        // await models.messages.insertOne(messageDocument);
-
-        // Add random duck image to user images
-
-        // let inserted = await req.usersCollection.insertOne(user);
-        // var newUser = inserted.ops;
-        // newUser = newUser[0];
     } catch (ex) {
         // Can't connect to DB
         console.log(ex);
@@ -209,7 +200,7 @@ router.post("/friends/add/:username", async function (req, res, next) {
 
         await addFriends(username, req.session.username);
 
-        // Update friend list cache of both users
+        // Update friend list cache hash of both users
         // console.log(hashData(getFriendList(req.session.username)));
         await updateHash("friendList", req.session.username);
         await updateHash("friendList", username);
@@ -252,13 +243,40 @@ router.get("/friends/get", async function (req, res, next) {
     }
 );
 
-/* Send a user a text message */
+/* Send a user a message */
 router.post("/message/send/:username/", async function(req, res, next) {
-    console.log(req.params);
+    const to = req.params.username;
+    const messageType = req.body.messageType;
+    const message = req.body.message;
 
-    console.log(req.body.message)
+    const from = req.session.username;
 
-    res.status(200).send()
+    console.log("Logged in as:", req.session.username)
+
+    console.log(to);
+    console.log(messageType);
+    console.log(message);
+
+    if (!to || !messageType || !message)  {
+        res.status(400).send();
+    }
+
+    const dateTime = new Date().getTime();
+
+    // Create message document
+    const messageDocument = createMessageJSON(messageType, to, from, message, dateTime);
+
+    // Add document to messages collection
+    await models.messages.insertOne(messageDocument)
+
+    console.log(messageDocument);
+
+    // Update messages hash
+    await updateHash("messages", to);
+    await updateHash("messages", from);
+
+
+    res.status(200).send();
 });
 
 // Check if a hash matches friend list hash
@@ -317,6 +335,36 @@ const getFriendList = async (username) => {
     return friendData;
 };
 
+// Get all messages received
+const getMessages = async(username) => {
+
+    console.log('message username', username)
+
+    let messageArray = []
+
+    // await models.messages.find({
+    //     to: username
+    // }).forEach(function(document) {
+    //     let to = document.to;
+    //     let from = document.from;
+    //     let message = document.message;
+    //     let timeSent = document.timeSent;
+    //     // let id = document._id
+    //     messageArray.push({to, from, message, timeSent});
+    // })
+
+    messageArray = await models.messages.find({
+        to: username,
+
+    }).project({_id:0}).toArray()
+
+    let messageData = {messageArray}
+
+    console.log(username + " has received:", messageData);
+
+    return messageData;
+};
+
 // Check if user exists in DB
 const doesUserExist = async (username) => {
     // Check if user already exists
@@ -352,14 +400,14 @@ const createFriendJSON = (username) => {
     };
 };
 
-// Create text message JSON object
-const createMessageJSON = (type, to, from, message, time) => {
+// Create message JSON object
+const createMessageJSON = (type, to, from, message, timeSent) => {
     return {
         type: type,
         to: to,
         from: from,
         message: message,
-        time: time,
+        timeSent: timeSent,
     };
 };
 
@@ -483,27 +531,53 @@ const base64Encode = (file) => {
 
 // Hash data using md5 and base64
 const hashData = (data) => {
+    // console.log("THE FUCKING DATA", data)
     return hashObject(data, { algorithm: "md5", encoding: "base64" });
 };
 
 // Update the hashes of a user
-const updateHash = async (hashType, username) => {
-    var newHash = hashData(await getFriendList(username));
+const updateHash = async(hashType, username) => {
+    let newHash;
+    // var newHash = hashData(await getFriendList(username));
 
     // console.log("new hash:", newHash);
+    console.log("its me", username)
 
-    if (hashType == "friendList") {
-        await models.users.updateOne(
-            {
-                username: username,
-            },
-            {
-                $set: { friendListHash: newHash },
+    switch(hashType) {
+        case "friendList":
+            newHash = hashData(await getFriendList(username));
+            console.log("shouldnt be print if message sent")
+            await models.users.updateOne(
+                {
+                    username: username,
+                },
+                {
+                    $set: { friendListHash: newHash },
+                }
+            );
+            break;
+        case "messages":
+            try {
+                newHash = hashData(await getMessages(username));
+                console.log("messages hash:", newHash)
+                await models.users.updateOne(
+                    {
+                        username, username
+                    },
+                    {
+                        $set: { messagesHash: newHash }
+                    }
+                )
+                break;
+            } catch {
+                console.log("Unable to get messages")
             }
-        );
+        default:
+            console.log("Invalid hash type")
     }
+   
     
-    // console.log(newHash + username);
+    console.log("newNash of type " + hashType + ": " + newHash);
 };
 
 // Get the hash for a user's friend list
