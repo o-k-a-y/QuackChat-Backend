@@ -211,7 +211,7 @@ router.post("/friends/add/:username", async function (req, res, next) {
 });
 
 /* Return list of user's friends */
-router.get("/friends/get", async function (req, res, next) {
+router.get("/friends/fetch", async function (req, res, next) {
     let friendData = await getFriendList(req.session.username);
 
     // let friendListHash = hashData(friendData);
@@ -242,6 +242,21 @@ router.get("/friends/get", async function (req, res, next) {
         
     }
 );
+
+/* Return list of user's messages */
+router.get("/messages/fetch", async function (req, res, next) {
+    let messageData = await getMessages(req.session.username);
+
+    let messagesHash = await getMessagesHash(req.session.username);
+
+
+    let response = {
+        messagesHash: messagesHash,
+        messages: messageData,
+    };
+
+    res.status(200).json(response).send();
+});
 
 /* Send a user a message */
 router.post("/message/send/:username/", async function(req, res, next) {
@@ -280,9 +295,10 @@ router.post("/message/send/:username/", async function(req, res, next) {
 });
 
 // Check if a hash matches friend list hash
-router.post("/hash/check/friendList", async function (req, res, next) {
+router.post("/hash/check", async function (req, res, next) {
     const username = req.session.username;
     const hash = req.body.hash;
+    const hashType = req.body.hashType
     
     // No hash passed in
     if (!hash) {
@@ -291,7 +307,12 @@ router.post("/hash/check/friendList", async function (req, res, next) {
 
     console.log("hash in check: ", hash);
 
-    let hashCheckRes = await hashMatch("friendList", hash, username);
+    let hashCheckRes;
+    if (hashType == "friendList") {
+        hashCheckRes = await hashMatch("friendList", hash, username);
+    } else if (hashType == "messages") {
+        hashCheckRes = await hashMatch("messages", hash, username);
+    }
 
     let hash1 = {"hash": hash};
     let hash2 = {"hash": hashCheckRes}
@@ -358,11 +379,11 @@ const getMessages = async(username) => {
 
     }).project({_id:0}).toArray()
 
-    let messageData = {messageArray}
+    let messages = messageArray
 
-    console.log(username + " has received:", messageData);
+    console.log(username + " has received:", messages);
 
-    return messageData;
+    return messages;
 };
 
 // Check if user exists in DB
@@ -586,12 +607,24 @@ const getFriendListHash = async (username) => {
         username: username,
     });
 
+    // TODO: use projection instead
     friendListHash = friendListHash.friendListHash;
-
-    // console.log("real hash:", friendListHash)
 
 
     return friendListHash;
+};
+
+// Get the hash for a user's messages
+const getMessagesHash = async (username) => {
+    let messagesHash = await models.users.findOne({
+        username: username,
+    });
+
+    // TODO: use projection instead
+    messagesHash = messagesHash.messagesHash;
+
+
+    return messagesHash;
 };
 
 // Check if two hashes match
@@ -599,7 +632,7 @@ const hashMatch = async (hashType, hash, username) => {
     if (hashType == "friendList") {
         return await hashMatchFriendList(hash, username);
     } else if (hashType == "messages") {
-        // TODO
+        return await hashMatchMessages(hash, username);
     }
 };
 
@@ -607,13 +640,25 @@ const hashMatch = async (hashType, hash, username) => {
 const hashMatchFriendList = async (hash, username) => {
     const friendListHash = await getFriendListHash(username);
     console.log("passed in hash", hash);
-    console.log()
 
     if (friendListHash == hash) {
         return hash;
     } else {
         await updateHash("friendList", username);
         return await getFriendListHash(username);
+    }
+};
+
+// Check if hash matches messages hash
+const hashMatchMessages = async (hash, username) => {
+    const messagesHash = await getMessagesHash(username);
+    console.log("passed in hash", hash);
+
+    if (messagesHash == hash) {
+        return hash;
+    } else {
+        await updateHash("messages", username);
+        return await getMessagesHash(username);
     }
 };
 
