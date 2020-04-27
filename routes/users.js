@@ -270,7 +270,11 @@ router.post("/message/send/:username/", async function(req, res, next) {
 
     console.log(to);
     console.log(messageType);
-    console.log(message);
+
+    // Picture and video base64 text is much too big to print
+    if (messageType == "text") {
+        console.log(message);
+    }
 
     if (!to || !messageType || !message)  {
         res.status(400).send();
@@ -278,13 +282,23 @@ router.post("/message/send/:username/", async function(req, res, next) {
 
     const dateTime = new Date().getTime();
 
+
+    // TODO: distinguish pictures and videos (maybe a seperate message route?)
+    // OR just a separate createMessageJSON() + insertOne (user insertMany) type of thing
+
+    // if (messageType == "message")
+
     // Create message document
     const messageDocument = createMessageJSON(messageType, to, from, message, dateTime);
 
     // Add document to messages collection
     await models.messages.insertOne(messageDocument)
 
-    console.log(messageDocument);
+
+    // Picture and video base64 text is much too big to print
+    if (messageType == "text") {
+        console.log(messageDocument);
+    }
 
     // Update messages hash
     await updateHash("messages", to);
@@ -381,7 +395,8 @@ const getMessages = async(username) => {
 
     let messages = messageArray
 
-    console.log(username + " has received:", messages);
+    // Uncomment only if you have no picture/video messages and they're massive
+    // console.log(username + " has received:", messages);
 
     return messages;
 };

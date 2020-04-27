@@ -7,6 +7,9 @@ let session = require("express-session")
 const MongoStore = require('connect-mongo')(session);
 // let passport = require('passport')
 
+// Needed for large files
+const bodyParser = require("body-parser")
+
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 
@@ -15,6 +18,9 @@ var app = express();
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
+
+// Allow up to 50mb size data to be sent to the server
+app.use(bodyParser.json({limit: '50mb'}));
 
 app.use(logger("dev"));
 app.use(express.json());
@@ -28,7 +34,7 @@ app.use(session({
     cookie: { maxAge: 86400000 }, // change to 2 hours
     resave: false,
     saveUninitialized: false,
-    store: new MongoStore({ url: "mongodb://3.229.96.152:27017/quackchat" })
+    store: new MongoStore({ url: "mongodb://3.216.237.170:27017/quackchat" })
 }))
 
 // Passport for authentication?

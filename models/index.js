@@ -2,7 +2,7 @@
 const MongoClient = require("mongodb").MongoClient;
 
 //const url = process.env.MONGO_URL || "mongodb://localhost:27017/quackchat";
-const url = process.env.MONGO_URL || "mongodb://3.229.96.152:27017/quackchat";
+const url = process.env.MONGO_URL || "mongodb://3.216.237.170:27017/quackchat";
 
 // Collections in MongoDB
 let users;
