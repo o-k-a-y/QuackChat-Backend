@@ -249,7 +249,6 @@ router.get("/messages/fetch", async function (req, res, next) {
 
     let messagesHash = await getMessagesHash(req.session.username);
 
-
     let response = {
         messagesHash: messagesHash,
         messages: messageData,
@@ -258,7 +257,7 @@ router.get("/messages/fetch", async function (req, res, next) {
     res.status(200).json(response).send();
 });
 
-/* Send a user a message */
+/* Send a user or list of users a message */
 router.post("/message/send/", async function(req, res, next) {
     const to = req.body.friends
     const messageType = req.body.messageType;
@@ -295,14 +294,13 @@ router.post("/message/send/", async function(req, res, next) {
         }
     }
 
-    
-
-    // Update messages hash
+    // Update messages hash for each friend
     for (let i = 0; i < to.length; i++) {
         await updateHash("messages", to[i]);
     }
-    await updateHash("messages", from);
 
+    // Update messages hash for logged in user
+    await updateHash("messages", from);
 
     res.status(200).send();
 });
