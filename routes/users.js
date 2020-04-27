@@ -259,8 +259,8 @@ router.get("/messages/fetch", async function (req, res, next) {
 });
 
 /* Send a user a message */
-router.post("/message/send/:username/", async function(req, res, next) {
-    const to = req.params.username;
+router.post("/message/send/", async function(req, res, next) {
+    const to = req.body.friends
     const messageType = req.body.messageType;
     const message = req.body.message;
 
@@ -268,7 +268,7 @@ router.post("/message/send/:username/", async function(req, res, next) {
 
     console.log("Logged in as:", req.session.username)
 
-    console.log(to);
+    console.log("sending message to:", to);
     console.log(messageType);
 
     // Picture and video base64 text is much too big to print
@@ -282,26 +282,25 @@ router.post("/message/send/:username/", async function(req, res, next) {
 
     const dateTime = new Date().getTime();
 
+    for (let i = 0; i < to.length; i++) {
+        // Create message document
+        const messageDocument = createMessageJSON(messageType, to[i], from, message, dateTime);
 
-    // TODO: distinguish pictures and videos (maybe a seperate message route?)
-    // OR just a separate createMessageJSON() + insertOne (user insertMany) type of thing
+        // Add document to messages collection
+        await models.messages.insertOne(messageDocument)
 
-    // if (messageType == "message")
-
-    // Create message document
-    const messageDocument = createMessageJSON(messageType, to, from, message, dateTime);
-
-    // Add document to messages collection
-    await models.messages.insertOne(messageDocument)
-
-
-    // Picture and video base64 text is much too big to print
-    if (messageType == "text") {
-        console.log(messageDocument);
+        // Picture and video base64 text is much too big to print
+        if (messageType == "text") {
+            console.log(messageDocument);
+        }
     }
 
+    
+
     // Update messages hash
-    await updateHash("messages", to);
+    for (let i = 0; i < to.length; i++) {
+        await updateHash("messages", to[i]);
+    }
     await updateHash("messages", from);
 
 
