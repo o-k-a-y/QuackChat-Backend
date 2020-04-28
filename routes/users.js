@@ -654,7 +654,7 @@ const hashMatchFriendList = async (hash, username) => {
     console.log("passed in hash", hash);
 
     if (friendListHash == hash) {
-        return hash;
+        return await hash;
     } else {
         await updateHash("friendList", username);
         return await getFriendListHash(username);
