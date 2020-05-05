@@ -20,17 +20,6 @@ router.get("/", async function (req, res, next) {
     }
 });
 
-/* Get information about the current logged in user */
-// TODO: Delete this as it's not needed
-router.get("/me", function (req, res, next) {
-    console.log("meeee");
-    if (req.session.username) {
-        res.json({ username: req.session.username }).status(200).send();
-    } else {
-        console.log(req.session.username);
-        res.status(404).send();
-    }
-});
 
 /* Authenticates user when login is successful */
 router.post("/login", async function (req, res, next) {
@@ -87,11 +76,6 @@ router.post("/login", async function (req, res, next) {
 
 /* Create new user account */
 router.put("/", async function (req, res, next) {
-    // // Return nothing if data is invalid
-    // if (!validateData(req.body)) {
-    //     res.json({});
-    // }
-
     let user = req.body;
 
     // TODO verify user doesn't already exist
@@ -294,6 +278,7 @@ router.get("/messages/fetch", async function (req, res, next) {
     res.status(200).json(response).send();
 });
 
+
 /* Send a user or list of users a message */
 router.post("/message/send/", async function(req, res, next) {
     const to = req.body.friends
@@ -342,7 +327,24 @@ router.post("/message/send/", async function(req, res, next) {
     res.status(200).send();
 });
 
-// Check if a hash matches friend list hash
+/* Delete a user's messages that are from a friend */
+router.delete("/messages/delete/:username", async function (req, res, next) {
+    console.log(req.params);
+    let friend = req.params.username;
+    console.log("Deleting messages send to ", req.session.username, " from ", friend);
+
+
+    // Delete messages from friend to logged in user
+    await deleteMessages(friend, req.session.username);
+
+    // Update each user's message hash
+    await updateHash("messages", friend);
+    await updateHash("messages", req.session.username);
+
+    res.status(200).send();
+});
+
+/* Check if a hash matches friend list hash */
 router.post("/hash/check", async function (req, res, next) {
     const username = req.session.username;
     const hash = req.body.hash;
