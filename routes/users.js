@@ -210,6 +210,43 @@ router.post("/friends/add/:username", async function (req, res, next) {
     return;
 });
 
+/* Delete the friend if the logged in user is friends with them */
+router.delete("/friends/delete/:username", async function (req, res, next) {
+    console.log(req.params);
+    let username = req.params.username;
+    console.log("username for friend delete: ", username);
+
+    // Check if user even exists
+    let userExists = await doesUserExist(username);
+
+    console.log("User to delete exists:", userExists);
+
+    if (!userExists) {
+        res.status(404).send();
+        return;
+    }
+
+    // Check if we're friends with that user
+    // TODO
+
+    // Delete friend and messages between them
+    await deleteMessages(req.session.username, username)
+    await deleteMessages(username, req.session.username)
+
+    await deleteFriend(req.session.username, username);
+
+    // Update friend hashes
+    await updateHash("friendList", req.session.username, username)
+    await updateHash("friendList",username, req.session.username)
+
+    // Update message hashes
+    await updateHash("messages", req.session.username, username)
+    await updateHash("messages",username, req.session.username)
+
+    res.status(200).send();
+    return;
+});
+
 /* Return list of user's friends */
 router.get("/friends/fetch", async function (req, res, next) {
     let friendData = await getFriendList(req.session.username);
@@ -468,6 +505,41 @@ const sendFriendRequest = async (userA, userB) => {
     );
 };
 
+// Delete user A from user B's friends and vice versa
+const deleteFriend = async (userA, userB) => {
+    await models.friends.updateOne(
+        {
+            userId: userA,
+        },
+        {
+            $pull: { friends: userB}
+        }
+    )
+
+    await models.friends.updateOne(
+        {
+            userId: userB,
+        },
+        {
+            $pull: { friends: userA}
+        }
+    )
+}
+
+// Delete all messages from fromUser to toUser
+const deleteMessages = async (fromUser, toUser) => {
+    await models.messages.deleteMany({
+        $and: [
+            {
+                from: fromUser,
+            },
+            {
+                to: toUser,
+            },
+        ],
+    });
+}
+
 // Returns whether or not user A can add B or vice versa
 // This is determined if user A has a received request from user B and user B has a pending request to user A
 const canAddFriend = async (userA, userB) => {
@@ -654,7 +726,7 @@ const hashMatchFriendList = async (hash, username) => {
     console.log("passed in hash", hash);
 
     if (friendListHash == hash) {
-        return await hash;
+        return await hash; // maybe breaks everything?
     } else {
         await updateHash("friendList", username);
         return await getFriendListHash(username);
