@@ -1,19 +1,24 @@
-var createError = require("http-errors");
-var express = require("express");
-var path = require("path");
-// var cookieParser = require("cookie-parser");
-var logger = require("morgan");
-let session = require("express-session")
+require('dotenv').config({path:'.env'}); // load environment variables
+
+const createError = require("http-errors");
+const express = require("express");
+const path = require("path");
+const logger = require("morgan");
+const session = require("express-session")
 const MongoStore = require('connect-mongo')(session);
-// let passport = require('passport')
+
 
 // Needed for large files
 const bodyParser = require("body-parser")
 
-var indexRouter = require("./routes/index");
-var usersRouter = require("./routes/users");
+const indexRouter = require("./routes/index");
+const usersRouter = require("./routes/users");
 
-var app = express();
+const app = express();
+
+// const databaseURL = "mongodb://3.216.237.170:27017/quackchat";
+
+const databaseURL = process.env.MONGO_URL || "ENTER YOUR DATABASE CONNECTION STRING";
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -34,7 +39,7 @@ app.use(session({
     cookie: { maxAge: 86400000 }, // change to 2 hours
     resave: false,
     saveUninitialized: false,
-    store: new MongoStore({ url: "mongodb://3.216.237.170:27017/quackchat" })
+    store: new MongoStore({ url: databaseURL})
 }))
 
 // Passport for authentication?

@@ -1,6 +1,6 @@
-var express = require("express");
-var router = express.Router();
-var bcrypt = require("bcrypt");
+const express = require("express");
+const router = express.Router();
+const bcrypt = require("bcrypt");
 const ObjectID = require("mongodb").ObjectID;
 const models = require("../models"); // contains MongoDB collections
 const fs = require("fs"); // for images

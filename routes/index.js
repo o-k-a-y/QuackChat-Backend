@@ -1,5 +1,5 @@
-var express = require("express");
-var router = express.Router();
+const express = require("express");
+const router = express.Router();
 
 // Check if user is authenticated (username exists in session)
 router.get("/auth", function(req, res, next) {
