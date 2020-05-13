@@ -1,3 +1,10 @@
+/**
+ * This file contains most of the backend routes to send data from the server to the client.
+ * It also contains a route to check if two hashes match and returns the most up to date hash.
+ * 
+ * Many utility functions are supplied for code abstraction as well.
+ */
+
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
@@ -5,20 +12,6 @@ const ObjectID = require("mongodb").ObjectID;
 const models = require("../models"); // contains MongoDB collections
 const fs = require("fs"); // for images
 const hashObject = require("object-hash"); // for hashing objects to check if cache is up to date
-
-/* GET users listing. */
-router.get("/", async function (req, res, next) {
-    let allUsers;
-    //console.log(req);
-
-    try {
-        allUsers = await models.users.find({}).toArray();
-        res.json(allUsers);
-        //console.log(allUser);
-    } catch (ex) {
-        console.log(ex);
-    }
-});
 
 
 /* Authenticates user when login is successful */

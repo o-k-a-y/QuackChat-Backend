@@ -1,3 +1,11 @@
+/**
+ * This file injects all the middleware into the Express server.
+ * Such middleware includes body-parser, express-session, morgan, path, http-errors
+ * 
+ * This file also sets up the routes so for example when a user visits host:port/users, the correct
+ * route and therefore logic is called to handle that specific request.
+ */
+
 require('dotenv').config({path:'.env'}); // load environment variables
 
 const createError = require("http-errors");
@@ -30,29 +38,15 @@ app.use(bodyParser.json({limit: '50mb'}));
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-// app.use(cookieParser({
-//     secret: "yess"
-// }));
+
 app.use(express.static(path.join(__dirname, "public")));
 app.use(session({
     secret: "yess",
-    cookie: { maxAge: 86400000 }, // change to 2 hours
+    cookie: { maxAge: 86400000 }, // user is authenticated for 24 hours
     resave: false,
     saveUninitialized: false,
     store: new MongoStore({ url: databaseURL})
 }))
-
-// Passport for authentication?
-// app.use(passport.initialize());
-// app.use(passport.session());
-
-// Add MongoDB collections to middleware and add the MongoDB collection object to the request object
-// app.use((req, res, next) => {
-//     req.usersCollection = users;
-
-//     next(); 
-// });
-
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
